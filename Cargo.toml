@@ -1,0 +1,16 @@
+[workspace]
+members = ["macro"]
+
+[workspace.dependencies]
+synstructure = "0.13.1"
+
+[package]
+name = "non_structural_derive"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+non_structural_derive_macro = { version = "0.1.0", path = "./macro" }
+
+[dev-dependencies]
+synstructure.workspace = true
