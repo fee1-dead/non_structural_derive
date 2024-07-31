@@ -1,13 +1,14 @@
 [package]
 name = "non_structural_derive_macro"
-version = "0.1.0"
-edition = "2021"
+description.workspace = true
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
 quote = "1.0.36"
 syn = "2.0.71"
 proc-macro2 = "1.0.86"
-synstructure.workspace = true
+synstructure = "0.13.1"
 
 [lib]
 proc-macro = true
