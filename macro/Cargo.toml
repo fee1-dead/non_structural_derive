@@ -3,6 +3,8 @@ name = "non_structural_derive_macro"
 description.workspace = true
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 quote = "1.0.36"
