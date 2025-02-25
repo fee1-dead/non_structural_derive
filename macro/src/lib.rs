@@ -1,4 +1,4 @@
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::parse::Parse;
 use syn::punctuated::Punctuated;
@@ -24,9 +24,12 @@ fn non_structural_derive_impl(attr: TokenStream, mut s: Structure) -> TokenStrea
 
     let mut bodies = vec![];
     for name in cfg.elems {
-        let check_fn = match &*name.to_string() {
-            "Send" => Ident::new("check_send", Span::call_site()),
-            "Sync" => Ident::new("check_sync", Span::call_site()),
+        let (name, is_unsafe) = match &*name.to_string() {
+            "Send" | "Sync" => (quote!(::core::marker::#name), true),
+            "Unpin" => (quote!(::core::marker::#name), false),
+            "UnwindSafe" => (quote!(::core::panic::#name), false),
+            "RefUnwindSafe" => (quote!(::core::panic::#name), false),
+            "DynSync" | "DynSend" => (quote!(::rustc_data_structures::marker::#name), true),
             _ => {
                 return syn::Error::new_spanned(name, "only `Send` and `Sync` are supported")
                     .into_compile_error()
@@ -34,16 +37,12 @@ fn non_structural_derive_impl(attr: TokenStream, mut s: Structure) -> TokenStrea
             }
         };
         s.add_bounds(AddBounds::Generics);
-
-        let types = s
-            .variants()
-            .iter()
-            .flat_map(|v| v.bindings())
-            .map(|b| &b.ast().ty);
-
-        let impl_ = s.gen_impl(quote! {
-            gen unsafe impl #name for @Self {}
-        });
+        let impl_source = if is_unsafe {
+            quote!(gen unsafe impl #name for @Self {})
+        } else {
+            quote!(gen impl #name for @Self {})
+        };
+        let impl_ = s.gen_impl(impl_source);
 
         let mut generics = s.ast().generics.clone();
         for par in generics.type_params_mut() {
@@ -51,12 +50,20 @@ fn non_structural_derive_impl(attr: TokenStream, mut s: Structure) -> TokenStrea
         }
         let where_ = generics.where_clause.take();
 
+        let fields = s
+            .variants()
+            .iter()
+            .flat_map(|v| v.bindings())
+            .map(|b| &b.ast().ty);
+
         bodies.push(quote! {
             const _: () = {
                 #impl_
-                fn _validate #generics () #where_ {
+
+                fn _check_bound<T: #name>() {}
+                fn _validate_fields #generics () #where_ {
                     #(
-                        ::non_structural_derive::#check_fn::<#types>();
+                        _check_bound::<#fields>();
                     )*
                 }
             };
