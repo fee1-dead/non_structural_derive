@@ -17,9 +17,10 @@ where
 
 // `#[non_structural_derive(Send)]` emits the the following instead:
 unsafe impl<T: Send> Send for Foo<T> {}
-fn _validate<T: Send>() {
-    non_structural_derive::check_send::<Bar<T>>();
-    non_structural_derive::check_send::<Baz>();
+fn _check_bound<T: Send>() {}
+fn _validate_fields<T: Send>() {
+    _check_bound::<Bar<T>>();
+    _check_bound::<Baz>();
 }
 ```
 
