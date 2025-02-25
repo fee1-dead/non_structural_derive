@@ -31,7 +31,7 @@ fn non_structural_derive_impl(attr: TokenStream, mut s: Structure) -> TokenStrea
             "RefUnwindSafe" => (quote!(::core::panic::#name), false),
             "DynSync" | "DynSend" => (quote!(::rustc_data_structures::marker::#name), true),
             _ => {
-                return syn::Error::new_spanned(name, "only `Send` and `Sync` are supported")
+                return syn::Error::new_spanned(name, "not a known auto-trait")
                     .into_compile_error()
                     .into()
             }
