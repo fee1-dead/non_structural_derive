@@ -1,3 +1,5 @@
+#![no_std]
+
 /// Derives an auto-trait without doing a "perfect" derive.
 ///
 /// This uses behavior from the normal `derive` by adding the
